@@ -1,0 +1,10 @@
+{
+  "$schema": "https://www.partykit.io/schema.json",
+  "name": "plutoploy-gh-bot",
+  "main": "webhooks/party-server.js",
+  "compatibilityDate": "2026-06-12",
+  "serve": {
+    "path": "public",
+    "build": "webhooks/party-server.js"
+  }
+}

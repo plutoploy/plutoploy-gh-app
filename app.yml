@@ -1,0 +1,34 @@
+# This is a GitHub App Manifest. These settings will be used by default when
+# initially configuring your GitHub App.
+#
+# NOTE: changing this file will not update your GitHub App settings.
+# You must visit github.com/settings/apps/your-app-name to edit them.
+#
+# Read more about configuring your GitHub App:
+# https://probot.github.io/docs/development/#configuring-a-github-app
+#
+# Read more about GitHub App Manifests:
+# https://developer.github.com/apps/building-github-apps/creating-github-apps-from-a-manifest/
+
+# The list of events the GitHub App subscribes to.
+default_events:
+  - workflow_run
+  - workflow_job
+
+# The set of permissions needed by the GitHub App.
+default_permissions:
+  # Required to receive workflow_run and workflow_job events and fetch workflow logs
+  actions: read
+  # Required for all GitHub Apps
+  metadata: read
+
+# The name of the GitHub App. Defaults to the name specified in package.json
+name: Plutoploy GH Bot
+
+url: https://plutoploy.qzz.io
+
+description: GitHub App to manage deployments via Plutoploy
+
+# Set to true when your GitHub App is available to the public or false when it is only accessible to the owner of the app.
+# Default: true
+public: false

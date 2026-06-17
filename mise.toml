@@ -1,0 +1,13 @@
+[tools]
+aube = "latest"
+betterleaks = "latest"
+bun = "latest"
+node = "22"
+[deps]
+npm = { auto = true }
+
+[tasks]
+install = "npm install"
+webhook-deploy = "npmx partykit deploy"
+update = "npm update"
+envpush = "npm x partykit env push"

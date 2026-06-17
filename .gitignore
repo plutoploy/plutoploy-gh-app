@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+*.pem
+!mock-cert.pem
+.env
+coverage
+lib
+
+# Added by ggshield
+.cache_ggshield
+
+# Local Netlify folder
+.netlify
