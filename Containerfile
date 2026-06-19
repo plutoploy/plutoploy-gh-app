@@ -1,4 +1,4 @@
-FROM docker.io/alpine:latest
+FROM ghcr.io/linuxcontainers/alpine:latest
 WORKDIR /app
 RUN curl https://mise.run | sh >> /dev/null
 COPY . .
