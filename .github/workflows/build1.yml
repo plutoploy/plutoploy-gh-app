@@ -1,0 +1,31 @@
+name: mise build and push
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  deployments: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MISE_EXPERIMENTAL: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@main
+      - uses: jdx/mise-action@v3
+      - run: mise run ci
+    env:
+      GITHUB_TOKEN: ${{ github.token }}

@@ -2,18 +2,34 @@
 aube = "latest"
 node = "22"
 
+[env]
+PORT = "3000"
+
 [tasks]
 install = "aube install"
 webhook-deploy = "aube x partykit deploy"
 update = "aube update"
 envpush = "aube x partykit env push"
 start = "aube run start"
+ci = "mise oci build && mise oci push"
 
-[deps.aube]
-auto = true
+[deps]
+aube = { auto = true }
 
 [settings]
 experimental = true
+github_attestations = true
 
-[env]
-PORT = 3000
+[oci]
+from = "docker.io/debian:latest"
+tag = "${github.repo}:latest"
+workdir = "/app"
+entrypoint = ["bash", "-l"]
+cmd = []
+user = "nonroot"
+user_id = 1000
+group_id = 1000
+mount_point = "/mise"
+
+[oci.labels]
+"org.opencontainers.image.source" = "https://github.com/${github.repo}"
