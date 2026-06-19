@@ -7,9 +7,9 @@ PORT = "3000"
 
 [tasks]
 install = "pnpm install"
-webhook-deploy = "pnpm x partykit deploy"
+webhook-deploy = "pnpm exec partykit deploy"
 update = "pnpm update"
-envpush = "pnpm x partykit env push"
+envpush = "pnpm exec partykit env push"
 start = "pnpm run start"
 ci = "mise oci build && mise oci push ghcr.io/${GITHUB_REPOSITORY}:latest"
 

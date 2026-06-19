@@ -18,12 +18,14 @@
     "build": "esbuild app.ts --bundle --platform=node --target=node20 --outfile=dist/index.js"
   },
   "dependencies": {
+    "octokit": "^5.0.5",
     "partykit": "^0.0.115",
     "partysocket": "^1.2.0",
     "probot": "^14.3.2"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "smee-client": "^5.0.0"
   }
 }
