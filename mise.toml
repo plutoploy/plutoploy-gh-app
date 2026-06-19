@@ -1,7 +1,4 @@
 [tools]
-act = "latest"
-action-validator = "latest"
-actionlint = "latest"
 aube = "latest"
 node = "22"
 
@@ -30,9 +27,7 @@ workdir = "/app"
 entrypoint = ["bash", "-l"]
 cmd = []
 user = "nonroot"
-user_id = 1000
-group_id = 1000
+user_id = "1000"
+group_id = "1000"
 mount_point = "/mise"
-
-[oci.labels]
-"org.opencontainers.image.source" = "https://github.com/${github.repo}"
+labels = { "org.opencontainers.image.source" = "https://github.com/${github.repo}" }

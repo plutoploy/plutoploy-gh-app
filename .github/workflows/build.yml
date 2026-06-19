@@ -5,7 +5,6 @@ on:
   pull_request:
   push:
 
-
 permissions:
   contents: write
   pull-requests: write
@@ -27,9 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@main
       - uses: jdx/mise-action@main
+        with:
+          bootstrap: true
+          cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
       - run: mise run ci
-    with:
-      bootstrap: true
-      cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
     env:
       GITHUB_TOKEN: ${{ github.token }}
