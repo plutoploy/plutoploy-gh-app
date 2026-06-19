@@ -1,4 +1,4 @@
-FROM quay.io/almalinuxorg/almalinux:latest
+FROM docker.io/alpine:latest
 WORKDIR /app
 RUN curl https://mise.run | sh >> /dev/null
 COPY . .
