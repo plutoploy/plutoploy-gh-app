@@ -11,7 +11,7 @@ webhook-deploy = "aube x partykit deploy"
 update = "aube update"
 envpush = "aube x partykit env push"
 start = "aube run start"
-ci = "mise oci build && mise oci push"
+ci = "mise oci build && mise oci push ghcr.io/${GITHUB_REPOSITORY}:latest"
 
 [deps]
 aube = { auto = true }
