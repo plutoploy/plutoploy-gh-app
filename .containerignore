@@ -13,3 +13,16 @@ public/*
 Containerfile
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
+dist/
+node_modules/
+.gitignore
+.*
+!app.ts
+!package.json
+!bun.lock
+compose.yaml
+*.md
+*.js
+partykit*
+!functions
+.github/
