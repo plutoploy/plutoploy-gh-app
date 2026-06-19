@@ -15,20 +15,16 @@
     "start": "probot run ./app.ts",
     "test": "node --test",
     "webhook-deploy": "partykit deploy",
-    "build": "esbuild app.ts --bundle --platform=node --target=node20 --outfile=dist/index.js",
-    "netlify:build": "netlify build",
-    "netlify:deploy": "netlify deploy"
+    "build": "esbuild app.ts --bundle --platform=node --target=node20 --outfile=dist/index.js"
   },
   "dependencies": {
     "@probot/adapter-aws-lambda-serverless": "^4.0.3",
-    "partykit": "^0.0.0",
+    "partykit": "^0.0.115",
     "partysocket": "^1.2.0",
     "probot": "^14.3.2"
   },
   "devDependencies": {
-    "@types/node": "^25.9.3",
-    "nock": "^14.0.15",
-    "smee-client": "^5.0.0"
+    "@types/node": "^26.0.0"
   },
   "engines": {
     "node": "^20.18.1"
@@ -37,5 +33,11 @@
   "allowScripts": {
     "esbuild@0.21.5": true,
     "workerd@1.20240718.0": true
+  },
+  "aube": {
+    "allowBuilds": {
+      "esbuild": true,
+      "workerd": true
+    }
   }
 }

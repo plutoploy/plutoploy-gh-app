@@ -1,12 +1,8 @@
-FROM oven/bun:canary
-
+FROM quay.io/almalinuxorg/almalinux:latest
 WORKDIR /app
-
-COPY package*.json ./
-RUN bun install
-
+RUN curl https://mise.run | sh >> /dev/null
 COPY . .
-
 EXPOSE 3000
-
-CMD [ "bun", "run", "start" ]
+RUN $HOME/.local/bin/mise deps
+RUN $HOME/.local/bin/mise run build
+CMD [ "$HOME/.local/bin/mise", "run", "start" ]

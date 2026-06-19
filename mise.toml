@@ -1,14 +1,19 @@
 [tools]
-actionlint = "latest"
 aube = "latest"
-betterleaks = "latest"
-bun = "latest"
 node = "22"
-[deps]
-npm = { auto = true }
 
 [tasks]
-install = "npm install"
-webhook-deploy = "npmx partykit deploy"
-update = "npm update"
-envpush = "npm x partykit env push"
+install = "aube install"
+webhook-deploy = "aube x partykit deploy"
+update = "aube update"
+envpush = "aube x partykit env push"
+start = "aube run start"
+
+[deps.aube]
+auto = true
+
+[settings]
+experimental = true
+
+[env]
+PORT = 3000

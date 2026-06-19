@@ -10,4 +10,6 @@
 **/dist
 **/*.pem
 public/*
-Dockerfile
+Containerfile
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md

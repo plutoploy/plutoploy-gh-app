@@ -1,10 +1,9 @@
 services:
   bot:
-    build: .
+    container_name: plutoploy-gh-bot
+    image: ghcr.io/plutoploy/plutoploy-gh-bot:latest
     ports:
       - "3000:3000"
     env_file:
       - .env
-    environment:
-      - PORT=3000
     restart: always
