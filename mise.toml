@@ -1,5 +1,4 @@
 [tools]
-actionlint = "latest"
 aube = "latest"
 node = "22"
 
