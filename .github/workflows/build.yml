@@ -19,7 +19,6 @@ concurrency:
 
 env:
   MISE_EXPERIMENTAL: true
-  GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
   ci:
@@ -30,12 +29,14 @@ jobs:
       - uses: jdx/mise-action@main
         with:
            bootstrap: true
-          cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
+           cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@master
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - run: mise run ci
+        env: 
+          GITHUB_TOKEN: ${{ github.token }}
 
