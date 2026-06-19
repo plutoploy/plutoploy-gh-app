@@ -1,4 +1,7 @@
 [tools]
+act = "latest"
+action-validator = "latest"
+actionlint = "latest"
 aube = "latest"
 node = "22"
 
@@ -6,7 +9,7 @@ node = "22"
 PORT = "3000"
 
 [tasks]
-install = "aube install"
+install = "aube install --locked"
 webhook-deploy = "aube x partykit deploy"
 update = "aube update"
 envpush = "aube x partykit env push"
