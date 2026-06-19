@@ -27,7 +27,7 @@ workdir = "/app"
 entrypoint = ["bash", "-l"]
 cmd = []
 user = "nonroot"
-user_id = "1000"
-group_id = "1000"
+user_id = 1000
+group_id = 1000
 mount_point = "/mise"
 labels = { "org.opencontainers.image.source" = "https://github.com/${github.repo}" }
