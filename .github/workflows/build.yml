@@ -18,6 +18,7 @@ concurrency:
 
 env:
   MISE_EXPERIMENTAL: true
+  GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
   ci:
@@ -30,5 +31,4 @@ jobs:
           bootstrap: true
           cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
       - run: mise run ci
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
+
