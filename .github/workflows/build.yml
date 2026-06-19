@@ -12,6 +12,8 @@ permissions:
   deployments: write
   id-token: write
   packages: write
+  artifact-metadata: write
+  attestations: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -39,4 +41,10 @@ jobs:
       - run: mise run ci
         env: 
           GITHUB_TOKEN: ${{ github.token }}
-
+      
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@main
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
