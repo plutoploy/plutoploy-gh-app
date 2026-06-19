@@ -38,7 +38,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
-      - run: mise run ci
+      - name: Build OCI image
+        run: mise oci build
+        env: 
+          GITHUB_TOKEN: ${{ github.token }}
+      
+      - name: Push OCI image
+        id: push
+        run: |
+          mise oci push ghcr.io/${{ github.repository }}:latest
+          DIGEST=$(docker buildx imagetools inspect "ghcr.io/${{ github.repository }}:latest" 2>&1 | awk '/Digest:/{print $2}')
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
         env: 
           GITHUB_TOKEN: ${{ github.token }}
       
