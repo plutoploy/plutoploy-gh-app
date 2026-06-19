@@ -1,57 +1,57 @@
-name: mise build and push
+name: Build and Push to GHCR
 
 on:
-  workflow_dispatch:
-  pull_request:
   push:
+  workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  deployments: write
-  id-token: write
+  contents: read
   packages: write
-  artifact-metadata: write
+  id-token: write
   attestations: write
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  artifact-metadata: write
 
 env:
-  MISE_EXPERIMENTAL: true
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.event.repository.name }}
 
 jobs:
-  ci:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@main
-      - uses: jdx/mise-action@main
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Install buildah and podman
+        run: |
+          if ! command -v buildah &> /dev/null || ! command -v podman &> /dev/null; then
+            apt update && apt install -y buildah podman
+          fi
+
+      - name: Build image using Buildah
+        id: build-image
+        uses: redhat-actions/buildah-build@main
         with:
-           bootstrap: true
-           cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
-      - name: Login to GHCR
-        uses: docker/login-action@master
+          image: ghcr.io/${{ github.repository }}
+          tags: latest ${{ github.sha }} ${{ github.ref_name }}
+          containerfiles: |
+            ./Containerfile
+
+      - name: Log in to GitHub Container Registry
+        uses: redhat-actions/podman-login@main
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
-      - name: Build OCI image
-        run: mise oci build
-        env: 
-          GITHUB_TOKEN: ${{ github.token }}
-      
-      - name: Push OCI image
+
+      - name: Push to GHCR
         id: push
-        run: |
-          mise oci push ghcr.io/${{ github.repository }}:latest
-          DIGEST=$(docker buildx imagetools inspect "ghcr.io/${{ github.repository }}:latest" 2>&1 | awk '/Digest:/{print $2}')
-          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-        env: 
-          GITHUB_TOKEN: ${{ github.token }}
-      
+        uses: redhat-actions/push-to-registry@main
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ghcr.io
+
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@main
         with:
