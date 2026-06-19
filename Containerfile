@@ -1,4 +1,4 @@
-FROM docker.io/rockylinux/rockylinux:10-ubi-micro
+FROM docker.io/rockylinux/rockylinux:latest
 WORKDIR /app
 RUN curl https://mise.run | sh
 COPY . .
