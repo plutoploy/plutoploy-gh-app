@@ -14,14 +14,16 @@
 default_events:
   - workflow_run
   - workflow_job
-
+  - issues
+  - installation
+  - pull_request
 # The set of permissions needed by the GitHub App.
 default_permissions:
   # Required to receive workflow_run and workflow_job events and fetch workflow logs
-  actions: read
+  actions: write
   # Required for all GitHub Apps
-  metadata: read
-
+  metadata: write
+  contents: write
 # The name of the GitHub App. Defaults to the name specified in package.json
 name: Plutoploy GH Bot
 
@@ -29,6 +31,4 @@ url: https://plutoploy.qzz.io
 
 description: GitHub App to manage deployments via Plutoploy
 
-# Set to true when your GitHub App is available to the public or false when it is only accessible to the owner of the app.
-# Default: true
 public: false

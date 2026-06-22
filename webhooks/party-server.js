@@ -161,6 +161,88 @@ export default class MyServer {
       }
     }
 
+    // ─── LIST ALL REPOS ACROSS ALL INSTALLATIONS ───
+    if (req.method === "GET" && url.pathname === "/api/repos") {
+      try {
+        const app = new App({
+          appId: this.room.env.APP_ID,
+          privateKey: this.room.env.PRIVATE_KEY,
+        });
+
+        const allRepos = [];
+        for await (const { installation } of app.eachInstallation.iterator()) {
+          const octokit = await app.getInstallationOctokit(installation.id);
+          const { data: repos } = await octokit.rest.apps.listReposAccessibleToInstallation();
+          for (const r of repos) {
+            allRepos.push({
+              owner: installation.account.login,
+              name: r.name,
+              full_name: r.full_name,
+              private: r.private,
+              default_branch: r.default_branch,
+            });
+          }
+        }
+
+        return new Response(
+          JSON.stringify({ repos: allRepos }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }
+    }
+
+    // ─── FETCH RAW JOB LOGS ───
+    const logsMatch = url.pathname.match(/\/api\/repos\/([^/]+)\/([^/]+)\/logs\/(\d+)/);
+    if (req.method === "GET" && logsMatch) {
+      const owner = logsMatch[1];
+      const repo = logsMatch[2];
+      const runId = parseInt(logsMatch[3], 10);
+      try {
+        const app = new App({
+          appId: this.room.env.APP_ID,
+          privateKey: this.room.env.PRIVATE_KEY,
+        });
+
+        let installationId;
+        for await (const { installation } of app.eachInstallation.iterator()) {
+          if (installation.account.login === owner) {
+            installationId = installation.id;
+            break;
+          }
+        }
+
+        if (!installationId) {
+          return new Response(JSON.stringify({ error: "No installation found for this owner" }), { status: 404, headers: { "Content-Type": "application/json" } });
+        }
+
+        const octokit = await app.getInstallationOctokit(installationId);
+        const { data } = await octokit.rest.actions.getWorkflowRunLogs({
+          owner,
+          repo,
+          run_id: runId,
+        });
+
+        if (!data?.url) {
+          return new Response(JSON.stringify({ error: "No logs available" }), { status: 404, headers: { "Content-Type": "application/json" } });
+        }
+
+        const logRes = await fetch(data.url);
+        if (!logRes.ok) {
+          return new Response(JSON.stringify({ error: "Failed to download logs" }), { status: 502, headers: { "Content-Type": "application/json" } });
+        }
+
+        const logText = await logRes.text();
+        return new Response(
+          JSON.stringify({ owner, repo, runId, logText }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }
+    }
+
     if (req.method === "POST") {
       try {
         const body = await req.json();

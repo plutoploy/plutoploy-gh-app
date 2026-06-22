@@ -3,11 +3,7 @@ import { Probot } from "probot";
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
-async function broadcast(
-  ghUsername: string,
-  channel: string,
-  payload: Record<string, any>,
-) {
+async function broadcast(ghUsername: string, channel: string, payload: Record<string, any>) {
   try {
     const res = await fetch(`${WEBHOOK_URL}/${ghUsername}`, {
       method: "POST",
@@ -35,13 +31,13 @@ async function fetchJobLogs(
   octokit: any,
   owner: string,
   repo: string,
-  jobId: number,
+  runId: number,
 ): Promise<string | null> {
   try {
-    const { data } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
+    const { data } = await octokit.rest.actions.getWorkflowRunLogs({
       owner,
       repo,
-      job_id: jobId,
+      run_id: runId,
     });
 
     if (!data?.url) return null;
@@ -51,7 +47,7 @@ async function fetchJobLogs(
 
     return await logRes.text();
   } catch (err) {
-    console.error(`Failed to fetch logs for job ${jobId}:`, err.message);
+    console.error(`Failed to fetch logs for run ${runId}:`, err.message);
     return null;
   }
 }
@@ -63,11 +59,9 @@ function room(owner: string, repo: string, ...suffixes: string[]): string {
 
 export default (app: Probot) => {
   app.log.info("Plutoploy Webhook Relay started");
-
-  // ─── PUSH ───
   app.on("push", async (context) => {
     const { repository, ref, pusher, head_commit } = context.payload;
-    const owner = repository.owner.login;  // ✅ fix
+    const owner = repository.owner.login; // ✅ fix
     const repo = repository.name;
 
     await broadcast(owner, room(owner, repo), {
@@ -79,54 +73,57 @@ export default (app: Probot) => {
     });
   });
 
-  // ─── PULL REQUEST ───
   app.on("pull_request", async (context) => {
     const { repository, action, pull_request } = context.payload;
-    const owner = repository.owner.login;  // ✅ fix
+    const owner = repository.owner.login; // ✅ fix
     const repo = repository.name;
 
-    await broadcast(
-      owner,
-      room(owner, repo, `pr-${pull_request.number}`),
-      {
-        event: "pull_request",
-        action,
-        prNumber: pull_request.number,
-        title: pull_request.title,
-        author: pull_request.user?.login,
-        branch: pull_request.head.ref,
-      },
-    );
+    await broadcast(owner, room(owner, repo, `pr-${pull_request.number}`), {
+      event: "pull_request",
+      action,
+      prNumber: pull_request.number,
+      title: pull_request.title,
+      author: pull_request.user?.login,
+      branch: pull_request.head.ref,
+    });
   });
 
-  // ─── WORKFLOW RUN ───
   app.on("workflow_run", async (context) => {
     const { repository, workflow_run } = context.payload;
-    const owner = repository.owner.login;  // ✅ fix
+    const owner = repository.owner.login;
     const repo = repository.name;
 
-    await broadcast(
-      owner,
-      room(owner, repo, `run-${workflow_run.id}`),
-      {
-        event: "workflow_run",
-        action: context.payload.action,
-        runId: workflow_run.id,
-        workflowName: workflow_run.name,
-        status: workflow_run.status,
-        conclusion: workflow_run.conclusion,
-        branch: workflow_run.head_branch,
-        commitSha: workflow_run.head_sha,
-        url: workflow_run.html_url,
-      },
-    );
+    await broadcast(owner, room(owner, repo, `run-${workflow_run.id}`), {
+      event: "workflow_run",
+      action: context.payload.action,
+      runId: workflow_run.id,
+      workflowName: workflow_run.name,
+      status: workflow_run.status,
+      conclusion: workflow_run.conclusion,
+      branch: workflow_run.head_branch,
+      commitSha: workflow_run.head_sha,
+      url: workflow_run.html_url,
+    });
   });
-
-  // ─── WORKFLOW JOB ───
   app.on("workflow_job", async (context) => {
     const { repository, workflow_job } = context.payload;
-    const owner = repository.owner.login;  // ✅ fix (was .owner?.name)
+    const owner = repository.owner.login;
     const repo = repository.name;
+
+    if (workflow_job.conclusion === "failed") {
+      await context.octokit.rest.issues.create({
+        owner,
+        repo,
+        title: `Workflow job "${workflow_job.name}" failed`,
+        body: [
+          `**Job:** ${workflow_job.name}`,
+          `**Run ID:** ${workflow_job.run_id}`,
+          `**Status:** ${workflow_job.status}`,
+          `**Conclusion:** ${workflow_job.conclusion}`,
+          `**URL:** ${workflow_job.html_url}`,
+        ].join("\n"),
+      });
+    }
 
     await broadcast(owner, room(owner, repo, `run-${workflow_job.run_id}`), {
       event: "workflow_job",
@@ -140,34 +137,44 @@ export default (app: Probot) => {
     });
 
     if (workflow_job.status === "completed") {
-      const logText = await fetchJobLogs(
-        context.octokit,
-        owner,
-        repo,
-        workflow_job.id,
-      );
+      const logText = await fetchJobLogs(context.octokit, owner, repo, workflow_job.run_id);
 
       if (logText) {
-        await broadcast(
-          owner,
-          room(owner, repo, `run-${workflow_job.run_id}`),
-          {
-            event: "job_logs",
-            jobId: workflow_job.id,
-            runId: workflow_job.run_id,
-            jobName: workflow_job.name,
-            conclusion: workflow_job.conclusion,
-            logText,
+        await broadcast(owner, room(owner, repo, `run-${workflow_job.run_id}`), {
+          event: "job_logs",
+          jobId: workflow_job.id,
+          runId: workflow_job.run_id,
+          jobName: workflow_job.name,
+          conclusion: workflow_job.conclusion,
+          logText,
+        });
+
+        const res = await fetch(`${WEBHOOK_URL}/${owner}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(WEBHOOK_SECRET && { "X-PartyKit-Secret": WEBHOOK_SECRET }),
           },
-        );
+          body: JSON.stringify({
+            channel: room(owner, repo, `logs-${workflow_job.run_id}`),
+            payload: {
+              event: "raw_logs",
+              jobId: workflow_job.id,
+              runId: workflow_job.run_id,
+              jobName: workflow_job.name,
+              conclusion: workflow_job.conclusion,
+              logText,
+            },
+          }),
+        });
+
+        if (!res.ok) console.error(`❌ Raw logs relay failed: ${res.status}`);
       }
     }
   });
-
-  // ─── DEPLOYMENT ───
   app.on("deployment", async (context) => {
     const { repository, deployment } = context.payload;
-    const owner = repository.owner.login;  // ✅ already correct
+    const owner = repository.owner.login; // ✅ already correct
     const repo = repository.name;
 
     await broadcast(owner, room(owner, repo), {
@@ -183,7 +190,7 @@ export default (app: Probot) => {
   // ─── DEPLOYMENT STATUS ───
   app.on("deployment_status", async (context) => {
     const { repository, deployment, deployment_status } = context.payload;
-    const owner = repository.owner.login;  // ✅ already correct
+    const owner = repository.owner.login; // ✅ already correct
     const repo = repository.name;
 
     await broadcast(owner, room(owner, repo), {
