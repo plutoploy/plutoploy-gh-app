@@ -3,7 +3,11 @@ import { Probot } from "probot";
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
-async function broadcast(ghUsername: string, channel: string, payload: Record<string, any>) {
+async function broadcast(
+  ghUsername: string,
+  channel: string,
+  payload: Record<string, any>,
+) {
   try {
     const res = await fetch(`${WEBHOOK_URL}/${ghUsername}`, {
       method: "POST",
@@ -137,17 +141,26 @@ export default (app: Probot) => {
     });
 
     if (workflow_job.status === "completed") {
-      const logText = await fetchJobLogs(context.octokit, owner, repo, workflow_job.run_id);
+      const logText = await fetchJobLogs(
+        context.octokit,
+        owner,
+        repo,
+        workflow_job.run_id,
+      );
 
       if (logText) {
-        await broadcast(owner, room(owner, repo, `run-${workflow_job.run_id}`), {
-          event: "job_logs",
-          jobId: workflow_job.id,
-          runId: workflow_job.run_id,
-          jobName: workflow_job.name,
-          conclusion: workflow_job.conclusion,
-          logText,
-        });
+        await broadcast(
+          owner,
+          room(owner, repo, `run-${workflow_job.run_id}`),
+          {
+            event: "job_logs",
+            jobId: workflow_job.id,
+            runId: workflow_job.run_id,
+            jobName: workflow_job.name,
+            conclusion: workflow_job.conclusion,
+            logText,
+          },
+        );
 
         const res = await fetch(`${WEBHOOK_URL}/${owner}`, {
           method: "POST",

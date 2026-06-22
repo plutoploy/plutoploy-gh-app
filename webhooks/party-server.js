@@ -21,9 +21,9 @@ export default class MyServer {
         channel: targetChannel,
         payload: data.payload || data,
         sender: sender.id,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }),
-      [sender.id]
+      [sender.id],
     );
   }
 
@@ -31,7 +31,9 @@ export default class MyServer {
     const url = new URL(req.url);
 
     // ─── CHECK IF REPO IS CONNECTED ───
-    const connectedMatch = url.pathname.match(/\/api\/repos\/([^/]+)\/([^/]+)\/connected/);
+    const connectedMatch = url.pathname.match(
+      /\/api\/repos\/([^/]+)\/([^/]+)\/connected/,
+    );
     if (req.method === "GET" && connectedMatch) {
       const owner = connectedMatch[1];
       const repo = connectedMatch[2];
@@ -50,22 +52,35 @@ export default class MyServer {
         }
 
         if (!installationId) {
-          return new Response(JSON.stringify({ connected: false, owner, repo }), { status: 404, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({ connected: false, owner, repo }),
+            { status: 404, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const octokit = await app.getInstallationOctokit(installationId);
         await octokit.rest.repos.get({ owner, repo });
-        return new Response(JSON.stringify({ connected: true, owner, repo }), { headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ connected: true, owner, repo }), {
+          headers: { "Content-Type": "application/json" },
+        });
       } catch (err) {
         if (err.status === 404) {
-          return new Response(JSON.stringify({ connected: false, owner, repo }), { headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({ connected: false, owner, repo }),
+            { headers: { "Content-Type": "application/json" } },
+          );
         }
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
       }
     }
 
     // ─── INJECT FILE TO REPO ───
-    const injectMatch = url.pathname.match(/\/api\/repos\/([^/]+)\/([^/]+)\/inject/);
+    const injectMatch = url.pathname.match(
+      /\/api\/repos\/([^/]+)\/([^/]+)\/inject/,
+    );
     if (req.method === "POST" && injectMatch) {
       const owner = injectMatch[1];
       const repo = injectMatch[2];
@@ -73,7 +88,12 @@ export default class MyServer {
         const body = await req.json();
         const { path, content, message, branch } = body;
         if (!path || !content || !message) {
-          return new Response(JSON.stringify({ error: "path, content, and message are required" }), { status: 400, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({
+              error: "path, content, and message are required",
+            }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const app = new App({
@@ -90,19 +110,26 @@ export default class MyServer {
         }
 
         if (!installationId) {
-          return new Response(JSON.stringify({ error: "No installation found for this owner" }), { status: 404, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({ error: "No installation found for this owner" }),
+            { status: 404, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const octokit = await app.getInstallationOctokit(installationId);
-        const { data: existing } = await octokit.rest.repos.getContent({
-          owner,
-          repo,
-          path,
-          ...(branch && { ref: branch }),
-        }).catch(() => ({ data: null }));
+        const { data: existing } = await octokit.rest.repos
+          .getContent({
+            owner,
+            repo,
+            path,
+            ...(branch && { ref: branch }),
+          })
+          .catch(() => ({ data: null }));
 
         const bytes = new TextEncoder().encode(content);
-        const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
+        const binString = Array.from(bytes, (byte) =>
+          String.fromCodePoint(byte),
+        ).join("");
         const encoded = btoa(binString);
         await octokit.rest.repos.createOrUpdateFileContents({
           owner,
@@ -114,9 +141,15 @@ export default class MyServer {
           ...(existing && { sha: existing.sha }),
         });
 
-        return new Response(JSON.stringify({ success: true, owner, repo, path }), { headers: { "Content-Type": "application/json" } });
+        return new Response(
+          JSON.stringify({ success: true, owner, repo, path }),
+          { headers: { "Content-Type": "application/json" } },
+        );
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
       }
     }
 
@@ -139,11 +172,15 @@ export default class MyServer {
         }
 
         if (!installationId) {
-          return new Response(JSON.stringify({ error: "No installation found for this owner" }), { status: 404, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({ error: "No installation found for this owner" }),
+            { status: 404, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const octokit = await app.getInstallationOctokit(installationId);
-        const { data: repos } = await octokit.rest.apps.listReposAccessibleToInstallation();
+        const { data: repos } =
+          await octokit.rest.apps.listReposAccessibleToInstallation();
         return new Response(
           JSON.stringify({
             owner,
@@ -154,10 +191,13 @@ export default class MyServer {
               default_branch: r.default_branch,
             })),
           }),
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
       }
     }
 
@@ -172,7 +212,8 @@ export default class MyServer {
         const allRepos = [];
         for await (const { installation } of app.eachInstallation.iterator()) {
           const octokit = await app.getInstallationOctokit(installation.id);
-          const { data: repos } = await octokit.rest.apps.listReposAccessibleToInstallation();
+          const { data: repos } =
+            await octokit.rest.apps.listReposAccessibleToInstallation();
           for (const r of repos) {
             allRepos.push({
               owner: installation.account.login,
@@ -184,17 +225,21 @@ export default class MyServer {
           }
         }
 
-        return new Response(
-          JSON.stringify({ repos: allRepos }),
-          { headers: { "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ repos: allRepos }), {
+          headers: { "Content-Type": "application/json" },
+        });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
       }
     }
 
     // ─── FETCH RAW JOB LOGS ───
-    const logsMatch = url.pathname.match(/\/api\/repos\/([^/]+)\/([^/]+)\/logs\/(\d+)/);
+    const logsMatch = url.pathname.match(
+      /\/api\/repos\/([^/]+)\/([^/]+)\/logs\/(\d+)/,
+    );
     if (req.method === "GET" && logsMatch) {
       const owner = logsMatch[1];
       const repo = logsMatch[2];
@@ -214,7 +259,10 @@ export default class MyServer {
         }
 
         if (!installationId) {
-          return new Response(JSON.stringify({ error: "No installation found for this owner" }), { status: 404, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({ error: "No installation found for this owner" }),
+            { status: 404, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const octokit = await app.getInstallationOctokit(installationId);
@@ -225,21 +273,29 @@ export default class MyServer {
         });
 
         if (!data?.url) {
-          return new Response(JSON.stringify({ error: "No logs available" }), { status: 404, headers: { "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ error: "No logs available" }), {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         const logRes = await fetch(data.url);
         if (!logRes.ok) {
-          return new Response(JSON.stringify({ error: "Failed to download logs" }), { status: 502, headers: { "Content-Type": "application/json" } });
+          return new Response(
+            JSON.stringify({ error: "Failed to download logs" }),
+            { status: 502, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const logText = await logRes.text();
-        return new Response(
-          JSON.stringify({ owner, repo, runId, logText }),
-          { headers: { "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ owner, repo, runId, logText }), {
+          headers: { "Content-Type": "application/json" },
+        });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
       }
     }
 
@@ -252,22 +308,25 @@ export default class MyServer {
             type: "webhook",
             channel: targetChannel,
             payload: body.payload || body,
-            timestamp: Date.now()
-          })
+            timestamp: Date.now(),
+          }),
         );
 
         return new Response(
-          JSON.stringify({ success: true, connections: [...this.room.getConnections()].length }),
+          JSON.stringify({
+            success: true,
+            connections: [...this.room.getConnections()].length,
+          }),
           {
             status: 200,
-            headers: { "Content-Type": "application/json" }
-          }
+            headers: { "Content-Type": "application/json" },
+          },
         );
       } catch (err) {
-        return new Response(
-          JSON.stringify({ error: "Invalid JSON body" }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
       }
     }
 
@@ -275,9 +334,9 @@ export default class MyServer {
       return new Response(
         JSON.stringify({
           room: this.room.id,
-          connections: [...this.room.getConnections()].length
+          connections: [...this.room.getConnections()].length,
         }),
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { "Content-Type": "application/json" } },
       );
     }
 
