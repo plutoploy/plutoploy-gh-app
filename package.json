@@ -1,29 +1,29 @@
 {
-  "name": "plutoploy-gh-bot",
-  "version": "1.0.0",
-  "private": true,
-  "description": "plutoploy a easier way to devops",
-  "author": "Plutoploy",
-  "license": "ISC license",
-  "homepage": "https://github.com/plutoploy/plutoploy-gh-bot",
-  "keywords": [
-    "probot",
-    "github",
-    "probot-app"
-  ],
-  "scripts": {
-    "start": "probot run ./app.ts",
-    "webhook-deploy": "partykit deploy"
-  },
-  "dependencies": {
-    "octokit": "^5.0.5",
-    "partysocket": "^1.2.0",
-    "probot": "^14.3.2"
-  },
-  "devDependencies": {
-    "oxfmt": "^0.56.0",
-    "oxlint": "^1.71.0",
-    "partykit": "^0.0.115",
-    "smee-client": "^5.0.0"
-  }
+	"name": "plutoploy-gh-bot",
+	"version": "1.0.0",
+	"private": true,
+	"description": "plutoploy a easier way to devops",
+	"author": "Plutoploy",
+	"license": "ISC license",
+	"homepage": "https://github.com/plutoploy/plutoploy-gh-bot",
+	"keywords": [
+		"probot",
+		"github",
+		"probot-app"
+	],
+	"scripts": {
+		"start": "probot run ./app.ts",
+		"webhook-deploy": "partykit deploy"
+	},
+	"dependencies": {
+		"octokit": "^5.0.5",
+		"partysocket": "^1.2.0",
+		"probot": "^14.3.2"
+	},
+	"devDependencies": {
+		"oxfmt": "^0.56.0",
+		"oxlint": "^1.71.0",
+		"partykit": "^0.0.115",
+		"smee-client": "^5.0.0"
+	}
 }
